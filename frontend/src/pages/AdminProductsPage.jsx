@@ -53,7 +53,40 @@ const AdminProductsPage = () => {
   };
 
   useEffect(() => {
-    fetchProducts();
+    let isMounted = true;
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await api.get('/products');
+        if (isMounted) {
+          if (res.data && Array.isArray(res.data.products)) {
+            setProducts(res.data.products);
+          } else {
+            setProducts([]);
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error('Error fetching admin products:', err);
+          if (err.response && err.response.status === 403) {
+            setError('Not authorized. Admin access required.');
+          } else {
+            setError('Unable to load products. Please try again.');
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleOpenAddForm = () => {
@@ -211,11 +244,11 @@ const AdminProductsPage = () => {
           <p className="text-muted">Create, update, and manage catalog items and inventory levels.</p>
         </div>
         {!showForm ? (
-          <button onClick={handleOpenAddForm} className="btn btn-primary">
+          <button onClick={handleOpenAddForm} className="btn btn-primary" style={{ width: 'auto' }}>
             + Add New Product
           </button>
         ) : (
-          <button onClick={handleCloseForm} className="btn btn-outline">
+          <button onClick={handleCloseForm} className="btn btn-outline" style={{ width: 'auto' }}>
             ✕ Close Form
           </button>
         )}
@@ -253,7 +286,7 @@ const AdminProductsPage = () => {
         <div className="card card-body" style={{ marginBottom: '2rem' }}>
           <h3>{isEditing ? '✏️ Edit Product' : '➕ Add New Product'}</h3>
           <form onSubmit={handleSubmitForm} style={{ marginTop: '1.25rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
               {/* Product Name */}
               <div className="form-group">
                 <label className="form-label" htmlFor="prod-name">
@@ -318,7 +351,7 @@ const AdminProductsPage = () => {
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
               {/* Price */}
               <div className="form-group">
                 <label className="form-label" htmlFor="prod-price">
@@ -384,11 +417,11 @@ const AdminProductsPage = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting} style={{ width: 'auto' }}>
                 {isSubmitting ? 'Saving...' : isEditing ? 'Update Product' : 'Create Product'}
               </button>
-              <button type="button" onClick={handleCloseForm} className="btn btn-outline" disabled={isSubmitting}>
+              <button type="button" onClick={handleCloseForm} className="btn btn-outline" disabled={isSubmitting} style={{ width: 'auto' }}>
                 Cancel
               </button>
             </div>
@@ -409,7 +442,7 @@ const AdminProductsPage = () => {
         <div className="state-container alert-danger">
           <h3>Unable to load products</h3>
           <p style={{ margin: '0.5rem 0 1rem' }}>{error}</p>
-          <button onClick={fetchProducts} className="btn btn-danger">
+          <button onClick={fetchProducts} className="btn btn-danger" style={{ width: 'auto' }}>
             🔄 Retry
           </button>
         </div>
@@ -419,9 +452,9 @@ const AdminProductsPage = () => {
       {!loading && !error && products.length === 0 && (
         <div className="state-container">
           <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem' }}>📦</div>
-          <h3>No products found.</h3>
-          <p style={{ marginBottom: '1.5rem' }}>Click the button above to add your first product.</p>
-          <button onClick={handleOpenAddForm} className="btn btn-primary">
+          <h3>No products found</h3>
+          <p style={{ marginBottom: '1.5rem' }}>Click the button below to add your first product.</p>
+          <button onClick={handleOpenAddForm} className="btn btn-primary" style={{ width: 'auto' }}>
             + Add Product
           </button>
         </div>
@@ -468,7 +501,7 @@ const AdminProductsPage = () => {
                   </td>
 
                   {/* Price */}
-                  <td style={{ whiteSpace: 'nowrap', fontWeight: '700' }}>
+                  <td style={{ whiteSpace: 'nowrap', fontWeight: '800' }}>
                     ₹{Number(product.price).toLocaleString('en-IN')}
                   </td>
 
@@ -483,7 +516,7 @@ const AdminProductsPage = () => {
 
                   {/* Rating */}
                   <td>
-                    <span style={{ fontSize: '0.85rem' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>
                       ⭐ {Number(product.rating || 0).toFixed(1)} ({product.numReviews || 0})
                     </span>
                   </td>
@@ -492,7 +525,7 @@ const AdminProductsPage = () => {
                   <td>
                     {deleteConfirmId === product._id ? (
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--danger)', fontWeight: 'bold' }}>Confirm Delete?</span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--danger)', fontWeight: 'bold' }}>Confirm?</span>
                         <button
                           onClick={() => handleDeleteProduct(product._id, product.name)}
                           disabled={isSubmitting}
@@ -535,3 +568,4 @@ const AdminProductsPage = () => {
 };
 
 export default AdminProductsPage;
+

@@ -11,6 +11,9 @@ const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+const wishlistRoutes = require('./routes/wishlistRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // Initialize Express application
 const app = express();
@@ -32,6 +35,15 @@ app.use('/api/auth', authRoutes);
 
 // Product Routes
 app.use('/api/products', productRoutes);
+
+// Review Routes
+app.use('/api/reviews', reviewRoutes);
+
+// Wishlist Routes
+app.use('/api/wishlist', wishlistRoutes);
+
+// Payment Routes
+app.use('/api/payment', paymentRoutes);
 
 // Cart Routes
 app.use('/api/cart', cartRoutes);

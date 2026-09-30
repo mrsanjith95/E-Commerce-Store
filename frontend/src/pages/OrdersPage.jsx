@@ -68,9 +68,37 @@ const OrdersPage = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      fetchOrders();
-    }
+    let isMounted = true;
+    const loadOrders = async () => {
+      if (!user) return;
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await api.get('/orders/my-orders');
+        if (isMounted) {
+          if (res.data && Array.isArray(res.data.orders)) {
+            setOrders(res.data.orders);
+          } else {
+            setOrders([]);
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error('Error fetching my orders:', err);
+          setError('Unable to load your orders. Please try again.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadOrders();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   return (
@@ -80,7 +108,7 @@ const OrdersPage = () => {
           <h1>My Orders</h1>
           <p className="text-muted">Track and review your complete order history.</p>
         </div>
-        <Link to="/products" className="btn btn-outline">
+        <Link to="/products" className="btn btn-outline" style={{ width: 'auto' }}>
           Browse Products
         </Link>
       </div>
@@ -100,7 +128,7 @@ const OrdersPage = () => {
           <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>⚠️</div>
           <h3>Unable to load your orders</h3>
           <p style={{ margin: '0.5rem 0 1rem' }}>{error}</p>
-          <button onClick={fetchOrders} className="btn btn-danger">
+          <button onClick={fetchOrders} className="btn btn-danger" style={{ width: 'auto' }}>
             🔄 Retry
           </button>
         </div>
@@ -110,9 +138,9 @@ const OrdersPage = () => {
       {!loading && !error && orders.length === 0 && (
         <div className="state-container">
           <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem' }}>📦</div>
-          <h3>You haven't placed any orders yet.</h3>
+          <h3>You haven't placed any orders yet</h3>
           <p style={{ marginBottom: '1.5rem' }}>Explore our catalog and make your first purchase!</p>
-          <Link to="/products" className="btn btn-primary">
+          <Link to="/products" className="btn btn-primary" style={{ width: 'auto' }}>
             Start Shopping
           </Link>
         </div>
@@ -136,13 +164,11 @@ const OrdersPage = () => {
             </thead>
             <tbody>
               {orders.map((order) => {
-                // Calculate total physical units across all order items
                 const totalUnits = (order.orderItems || []).reduce(
                   (sum, item) => sum + (Number(item.quantity) || 0),
                   0
                 );
 
-                // Format timestamp
                 const formattedDate = order.createdAt
                   ? new Date(order.createdAt).toLocaleDateString('en-IN', {
                       day: '2-digit',
@@ -151,7 +177,6 @@ const OrdersPage = () => {
                     })
                   : 'N/A';
 
-                // Display shortened ID visually
                 const shortId = order._id ? `#${order._id.substring(0, 10)}...` : '#N/A';
 
                 return (
@@ -165,7 +190,7 @@ const OrdersPage = () => {
                     </td>
                     <td>
                       <span className="badge badge-secondary">
-                        {order.paymentMethod === 'COD' ? 'COD' : 'CARD'}
+                        {order.paymentMethod === 'COD' ? '💵 COD' : order.paymentMethod === 'RAZORPAY' ? '💳 RAZORPAY' : order.paymentMethod}
                       </span>
                     </td>
                     <td>
@@ -174,7 +199,7 @@ const OrdersPage = () => {
                     <td>
                       <OrderStatusBadge status={order.orderStatus} />
                     </td>
-                    <td style={{ whiteSpace: 'nowrap', fontWeight: '700', color: 'var(--secondary)' }}>
+                    <td style={{ whiteSpace: 'nowrap', fontWeight: '800', color: 'var(--secondary)' }}>
                       ₹{Number(order.totalPrice || 0).toLocaleString('en-IN')}
                     </td>
                     <td>
@@ -198,3 +223,4 @@ const OrdersPage = () => {
 };
 
 export default OrdersPage;
+

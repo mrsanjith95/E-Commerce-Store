@@ -77,7 +77,40 @@ const AdminOrdersPage = () => {
   };
 
   useEffect(() => {
-    fetchOrders();
+    let isMounted = true;
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await api.get('/orders');
+        if (isMounted) {
+          if (res.data && Array.isArray(res.data.orders)) {
+            setOrders(res.data.orders);
+          } else {
+            setOrders([]);
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error('Error fetching admin orders:', err);
+          if (err.response && err.response.status === 403) {
+            setError('Not authorized. Admin role required.');
+          } else {
+            setError('Unable to load customer orders. Please try again.');
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadOrders();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleStatusChange = async (orderId, newStatus) => {
@@ -114,7 +147,7 @@ const AdminOrdersPage = () => {
     <div>
       <div className="page-header">
         <div>
-          <h1>Order Fulfillment</h1>
+          <h1>Order Fulfillment Center</h1>
           <p className="text-muted">Monitor all customer orders and update shipment delivery statuses.</p>
         </div>
       </div>
@@ -149,19 +182,19 @@ const AdminOrdersPage = () => {
       {/* Selected Order Detail Modal / Preview Card */}
       {selectedOrder && (
         <div className="card card-body" style={{ marginBottom: '2rem', borderLeft: '4px solid var(--primary)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
               <h3>🔍 Order Details Preview (#{selectedOrder._id})</h3>
               <p className="text-muted" style={{ fontSize: '0.85rem' }}>
                 Placed on {new Date(selectedOrder.createdAt).toLocaleString('en-IN')}
               </p>
             </div>
-            <button onClick={() => setSelectedOrder(null)} className="btn btn-outline btn-sm">
+            <button onClick={() => setSelectedOrder(null)} className="btn btn-outline btn-sm" style={{ width: 'auto' }}>
               ✕ Close Preview
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginTop: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', marginTop: '1rem' }}>
             {/* Customer & Shipping */}
             <div>
               <h4 style={{ marginBottom: '0.5rem' }}>Customer & Shipping</h4>
@@ -176,10 +209,15 @@ const AdminOrdersPage = () => {
             <div>
               <h4 style={{ marginBottom: '0.5rem' }}>Payment & Status</h4>
               <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: '1.6' }}>
-                <strong>Payment Method:</strong> {selectedOrder.paymentMethod}<br />
+                <strong>Payment Method:</strong> {selectedOrder.paymentMethod === 'COD' ? '💵 Cash on Delivery (COD)' : selectedOrder.paymentMethod === 'RAZORPAY' ? '💳 Razorpay (Online Payment)' : selectedOrder.paymentMethod}<br />
                 <strong>Payment Status:</strong> <PaymentStatusBadge status={selectedOrder.paymentStatus} /><br />
                 <strong>Order Status:</strong> <OrderStatusBadge status={selectedOrder.orderStatus} />
               </p>
+              {selectedOrder.razorpayPaymentId && (
+                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                  <strong>Razorpay ID:</strong> <code>{selectedOrder.razorpayPaymentId}</code>
+                </div>
+              )}
               {selectedOrder.orderStatus === 'Delivered' && selectedOrder.deliveredAt && (
                 <div style={{ fontSize: '0.85rem', color: '#065f46', marginTop: '0.5rem', fontWeight: '600' }}>
                   🎉 Delivered on {new Date(selectedOrder.deliveredAt).toLocaleString('en-IN')}
@@ -210,7 +248,7 @@ const AdminOrdersPage = () => {
                 <div>Items Subtotal: ₹{Number(selectedOrder.itemsPrice || 0).toLocaleString('en-IN')}</div>
                 <div>Shipping: ₹{Number(selectedOrder.shippingPrice || 0).toLocaleString('en-IN')}</div>
                 <div>GST (18%): ₹{Number(selectedOrder.taxPrice || 0).toLocaleString('en-IN')}</div>
-                <div style={{ fontWeight: '700', fontSize: '1.05rem', color: 'var(--primary)', marginTop: '0.35rem' }}>
+                <div style={{ fontWeight: '800', fontSize: '1.05rem', color: 'var(--primary)', marginTop: '0.35rem' }}>
                   Total: ₹{Number(selectedOrder.totalPrice || 0).toLocaleString('en-IN')}
                 </div>
               </div>
@@ -232,7 +270,7 @@ const AdminOrdersPage = () => {
         <div className="state-container alert-danger">
           <h3>Unable to load orders</h3>
           <p style={{ margin: '0.5rem 0 1rem' }}>{error}</p>
-          <button onClick={fetchOrders} className="btn btn-danger">
+          <button onClick={fetchOrders} className="btn btn-danger" style={{ width: 'auto' }}>
             🔄 Retry
           </button>
         </div>
@@ -242,7 +280,7 @@ const AdminOrdersPage = () => {
       {!loading && !error && orders.length === 0 && (
         <div className="state-container">
           <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem' }}>📦</div>
-          <h3>No orders found.</h3>
+          <h3>No orders found</h3>
           <p>Customer orders will appear here once placed.</p>
         </div>
       )}
@@ -307,7 +345,7 @@ const AdminOrdersPage = () => {
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                         <span className="badge badge-secondary" style={{ fontSize: '0.7rem' }}>
-                          {order.paymentMethod}
+                          {order.paymentMethod === 'COD' ? '💵 COD' : order.paymentMethod === 'RAZORPAY' ? '💳 RAZORPAY' : order.paymentMethod}
                         </span>
                         <PaymentStatusBadge status={order.paymentStatus} />
                       </div>
@@ -338,7 +376,7 @@ const AdminOrdersPage = () => {
                     </td>
 
                     {/* Total Amount */}
-                    <td style={{ whiteSpace: 'nowrap', fontWeight: '700', color: 'var(--secondary)' }}>
+                    <td style={{ whiteSpace: 'nowrap', fontWeight: '800', color: 'var(--secondary)' }}>
                       ₹{Number(order.totalPrice || 0).toLocaleString('en-IN')}
                     </td>
 
@@ -364,3 +402,4 @@ const AdminOrdersPage = () => {
 };
 
 export default AdminOrdersPage;
+

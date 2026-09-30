@@ -15,7 +15,6 @@ const ProductsPage = () => {
       setLoading(true);
       setError(null);
       const res = await api.get('/products');
-      // Backend returns { success: true, count: X, products: [...] }
       if (res.data && Array.isArray(res.data.products)) {
         setProducts(res.data.products);
       } else if (Array.isArray(res.data)) {
@@ -32,7 +31,38 @@ const ProductsPage = () => {
   };
 
   useEffect(() => {
-    fetchProducts();
+    let isMounted = true;
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await api.get('/products');
+        if (isMounted) {
+          if (res.data && Array.isArray(res.data.products)) {
+            setProducts(res.data.products);
+          } else if (Array.isArray(res.data)) {
+            setProducts(res.data);
+          } else {
+            setProducts([]);
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error('Error fetching products:', err);
+          setError('Unable to load products. Please try again.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Extract unique categories from products list dynamically
@@ -94,9 +124,9 @@ const ProductsPage = () => {
         </div>
 
         {/* Filter Controls */}
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', width: '100%', maxWidth: '600px' }}>
           {/* Search Input */}
-          <div>
+          <div style={{ flex: '1 1 200px' }}>
             <label htmlFor="product-search" className="sr-only" style={{ display: 'none' }}>
               Search Products
             </label>
@@ -104,16 +134,15 @@ const ProductsPage = () => {
               id="product-search"
               type="text"
               className="form-control"
-              placeholder="Search products..."
+              placeholder="🔍 Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               aria-label="Search products"
-              style={{ width: '220px' }}
             />
           </div>
 
           {/* Category Filter */}
-          <div>
+          <div style={{ flex: '1 1 150px' }}>
             <label htmlFor="category-select" className="sr-only" style={{ display: 'none' }}>
               Category
             </label>
@@ -123,7 +152,6 @@ const ProductsPage = () => {
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               aria-label="Filter by category"
-              style={{ width: '160px' }}
             >
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
@@ -134,7 +162,7 @@ const ProductsPage = () => {
           </div>
 
           {/* Sort Dropdown */}
-          <div>
+          <div style={{ flex: '1 1 150px' }}>
             <label htmlFor="sort-select" className="sr-only" style={{ display: 'none' }}>
               Sort By
             </label>
@@ -144,7 +172,6 @@ const ProductsPage = () => {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               aria-label="Sort products"
-              style={{ width: '170px' }}
             >
               <option value="default">Default Sort</option>
               <option value="price-asc">Price: Low to High</option>
@@ -171,7 +198,7 @@ const ProductsPage = () => {
           <div>
             <h3 style={{ color: 'var(--danger)' }}>Unable to load products</h3>
             <p style={{ margin: '0.5rem 0' }}>{error}</p>
-            <button onClick={fetchProducts} className="btn btn-danger" style={{ marginTop: '0.75rem' }}>
+            <button onClick={fetchProducts} className="btn btn-danger" style={{ marginTop: '0.75rem', width: 'auto' }}>
               🔄 Retry
             </button>
           </div>
@@ -182,7 +209,7 @@ const ProductsPage = () => {
       {!loading && !error && products.length === 0 && (
         <div className="state-container">
           <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</div>
-          <h3>No products available.</h3>
+          <h3>No products available</h3>
           <p>Check back later for new arrivals.</p>
         </div>
       )}
@@ -191,7 +218,7 @@ const ProductsPage = () => {
       {!loading && !error && products.length > 0 && filteredAndSortedProducts.length === 0 && (
         <div className="state-container">
           <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🔍</div>
-          <h3>No products found.</h3>
+          <h3>No products found</h3>
           <p>Try adjusting your search criteria or category filter.</p>
           <button
             onClick={() => {
@@ -200,7 +227,7 @@ const ProductsPage = () => {
               setSortBy('default');
             }}
             className="btn btn-outline"
-            style={{ marginTop: '0.5rem' }}
+            style={{ marginTop: '0.5rem', width: 'auto' }}
           >
             Reset Filters
           </button>
@@ -220,3 +247,4 @@ const ProductsPage = () => {
 };
 
 export default ProductsPage;
+

@@ -37,7 +37,46 @@ const AdminDashboardPage = () => {
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    let isMounted = true;
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [productsRes, ordersRes] = await Promise.all([
+          api.get('/products'),
+          api.get('/orders'),
+        ]);
+
+        if (isMounted) {
+          if (productsRes.data && Array.isArray(productsRes.data.products)) {
+            setProducts(productsRes.data.products);
+          } else {
+            setProducts([]);
+          }
+
+          if (ordersRes.data && Array.isArray(ordersRes.data.orders)) {
+            setOrders(ordersRes.data.orders);
+          } else {
+            setOrders([]);
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error('Error fetching admin dashboard metrics:', err);
+          setError('Unable to load admin dashboard statistics. Please check your credentials and try again.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Client-side statistics calculations from API responses
@@ -46,6 +85,7 @@ const AdminDashboardPage = () => {
   const pendingOrders = orders.filter((o) => o.orderStatus === 'Pending').length;
   const deliveredOrders = orders.filter((o) => o.orderStatus === 'Delivered').length;
   const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.totalPrice) || 0), 0);
+  const totalStockUnits = products.reduce((acc, p) => acc + (p.stock || 0), 0);
 
   return (
     <div>
@@ -54,12 +94,15 @@ const AdminDashboardPage = () => {
           <h1>👑 Admin Dashboard</h1>
           <p className="text-muted">Overview of store sales, product inventory, and customer orders.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <Link to="/admin/products" className="btn btn-outline">
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <Link to="/admin/products" className="btn btn-outline" style={{ width: 'auto' }}>
             📦 Manage Products
           </Link>
-          <Link to="/admin/orders" className="btn btn-primary">
+          <Link to="/admin/orders" className="btn btn-outline" style={{ width: 'auto' }}>
             🚚 Manage Orders
+          </Link>
+          <Link to="/admin/reviews" className="btn btn-primary" style={{ width: 'auto' }}>
+            💬 Manage Reviews
           </Link>
         </div>
       </div>
@@ -79,7 +122,7 @@ const AdminDashboardPage = () => {
           <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>⚠️</div>
           <h3>Unable to load dashboard data</h3>
           <p style={{ margin: '0.5rem 0 1rem' }}>{error}</p>
-          <button onClick={fetchDashboardData} className="btn btn-danger">
+          <button onClick={fetchDashboardData} className="btn btn-danger" style={{ width: 'auto' }}>
             🔄 Retry
           </button>
         </div>
@@ -89,50 +132,69 @@ const AdminDashboardPage = () => {
       {!loading && !error && (
         <>
           <div className="grid grid-4" style={{ marginBottom: '2.5rem' }}>
-            <div className="card card-body">
-              <p className="text-muted" style={{ fontSize: '0.85rem' }}>Total Products</p>
-              <h2 style={{ margin: '0.25rem 0', fontSize: '2.2rem' }}>{totalProducts}</h2>
-              <span className="badge badge-primary">{products.reduce((acc, p) => acc + (p.stock || 0), 0)} Total Stock Units</span>
+            <div className="card card-body" style={{ borderLeft: '4px solid var(--primary)' }}>
+              <p className="text-muted" style={{ fontSize: '0.85rem', fontWeight: '600' }}>TOTAL PRODUCTS</p>
+              <h2 style={{ margin: '0.35rem 0', fontSize: '2.25rem' }}>{totalProducts}</h2>
+              <span className="badge badge-primary">{totalStockUnits} Total Stock Units</span>
             </div>
 
-            <div className="card card-body">
-              <p className="text-muted" style={{ fontSize: '0.85rem' }}>Total Orders</p>
-              <h2 style={{ margin: '0.25rem 0', fontSize: '2.2rem' }}>{totalOrders}</h2>
-              <span className="badge badge-info">{orders.length} Placed Orders</span>
+            <div className="card card-body" style={{ borderLeft: '4px solid var(--info)' }}>
+              <p className="text-muted" style={{ fontSize: '0.85rem', fontWeight: '600' }}>TOTAL ORDERS</p>
+              <h2 style={{ margin: '0.35rem 0', fontSize: '2.25rem' }}>{totalOrders}</h2>
+              <span className="badge badge-info">{orders.length} Customer Orders</span>
             </div>
 
-            <div className="card card-body">
-              <p className="text-muted" style={{ fontSize: '0.85rem' }}>Pending Orders</p>
-              <h2 style={{ color: 'var(--warning)', margin: '0.25rem 0', fontSize: '2.2rem' }}>{pendingOrders}</h2>
+            <div className="card card-body" style={{ borderLeft: '4px solid var(--warning)' }}>
+              <p className="text-muted" style={{ fontSize: '0.85rem', fontWeight: '600' }}>PENDING ORDERS</p>
+              <h2 style={{ color: 'var(--warning)', margin: '0.35rem 0', fontSize: '2.25rem' }}>{pendingOrders}</h2>
               <span className="badge badge-warning">Requires Fulfillment</span>
             </div>
 
-            <div className="card card-body">
-              <p className="text-muted" style={{ fontSize: '0.85rem' }}>Delivered Orders</p>
-              <h2 style={{ color: 'var(--success)', margin: '0.25rem 0', fontSize: '2.2rem' }}>{deliveredOrders}</h2>
-              <span className="badge badge-success">{totalRevenue > 0 ? `₹${totalRevenue.toLocaleString('en-IN')}` : 'Fulfilled'}</span>
+            <div className="card card-body" style={{ borderLeft: '4px solid var(--success)' }}>
+              <p className="text-muted" style={{ fontSize: '0.85rem', fontWeight: '600' }}>DELIVERED ORDERS</p>
+              <h2 style={{ color: 'var(--success)', margin: '0.35rem 0', fontSize: '2.25rem' }}>{deliveredOrders}</h2>
+              <span className="badge badge-success">{totalRevenue > 0 ? `₹${totalRevenue.toLocaleString('en-IN')} Revenue` : 'Fulfilled'}</span>
             </div>
           </div>
 
           {/* Quick Action Navigation Cards */}
-          <div className="grid grid-2">
+          <div className="grid grid-3">
             <div className="card card-body">
-              <h3>📦 Product Management</h3>
-              <p className="text-muted" style={{ margin: '0.5rem 0 1.25rem', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                Add new products to the catalog, update prices, adjust stock levels, or remove discontinued inventory items.
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <span style={{ fontSize: '1.75rem' }}>📦</span>
+                <h3>Product Catalog</h3>
+              </div>
+              <p className="text-muted" style={{ margin: '0.5rem 0 1.5rem', fontSize: '0.925rem', lineHeight: '1.6' }}>
+                Add new items, modify price points, set inventory stock levels, or remove obsolete products.
               </p>
-              <Link to="/admin/products" className="btn btn-outline">
-                Go to Product Catalog →
+              <Link to="/admin/products" className="btn btn-outline" style={{ width: 'auto' }}>
+                Manage Products →
               </Link>
             </div>
 
             <div className="card card-body">
-              <h3>🚚 Order Fulfillment</h3>
-              <p className="text-muted" style={{ margin: '0.5rem 0 1.25rem', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                View customer orders, update order status (Pending, Processing, Shipped, Delivered, Cancelled), and view customer details.
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <span style={{ fontSize: '1.75rem' }}>🚚</span>
+                <h3>Order Fulfillment</h3>
+              </div>
+              <p className="text-muted" style={{ margin: '0.5rem 0 1.5rem', fontSize: '0.925rem', lineHeight: '1.6' }}>
+                Review customer purchases, change order statuses (Pending, Processing, Shipped, Delivered), and inspect details.
               </p>
-              <Link to="/admin/orders" className="btn btn-primary">
-                Go to Orders List →
+              <Link to="/admin/orders" className="btn btn-outline" style={{ width: 'auto' }}>
+                Manage Orders →
+              </Link>
+            </div>
+
+            <div className="card card-body">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <span style={{ fontSize: '1.75rem' }}>💬</span>
+                <h3>Review Moderation</h3>
+              </div>
+              <p className="text-muted" style={{ margin: '0.5rem 0 1.5rem', fontSize: '0.925rem', lineHeight: '1.6' }}>
+                Monitor customer product reviews and ratings across the store and delete inappropriate reviews.
+              </p>
+              <Link to="/admin/reviews" className="btn btn-primary" style={{ width: 'auto' }}>
+                Manage Reviews →
               </Link>
             </div>
           </div>
@@ -143,3 +205,4 @@ const AdminDashboardPage = () => {
 };
 
 export default AdminDashboardPage;
+

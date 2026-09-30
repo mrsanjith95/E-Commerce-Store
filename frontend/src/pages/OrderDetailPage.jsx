@@ -149,12 +149,27 @@ const OrderDetailPage = () => {
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#475569' }}>
                 <div>
-                  <strong>Payment Method:</strong> {order.paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : 'Card Payment (CARD)'}
+                  <strong>Payment Method:</strong>{' '}
+                  {order.paymentMethod === 'COD'
+                    ? 'Cash on Delivery (COD)'
+                    : order.paymentMethod === 'RAZORPAY'
+                    ? 'Razorpay (Online Payment)'
+                    : order.paymentMethod}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <strong>Payment Status:</strong>
                   <PaymentStatusBadge status={order.paymentStatus} />
                 </div>
+                {order.paymentStatus === 'Paid' && order.paidAt && (
+                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                    Paid on {new Date(order.paidAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                  </div>
+                )}
+                {order.razorpayPaymentId && (
+                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                    Payment ID: <code>{order.razorpayPaymentId}</code>
+                  </div>
+                )}
               </div>
 
               {/* Delivery Info */}

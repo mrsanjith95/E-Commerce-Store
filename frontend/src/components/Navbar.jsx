@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 
 const Navbar = () => {
   const { user, logout, isAdmin } = useAuth();
   const { itemCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -58,6 +60,15 @@ const Navbar = () => {
 
           {user ? (
             <>
+              <li>
+                <NavLink
+                  to="/wishlist"
+                  onClick={closeMenu}
+                  className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+                >
+                  ♡ Wishlist <span className="cart-badge" style={{ backgroundColor: 'var(--secondary)' }}>{wishlistCount}</span>
+                </NavLink>
+              </li>
               <li>
                 <NavLink
                   to="/cart"
@@ -139,3 +150,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

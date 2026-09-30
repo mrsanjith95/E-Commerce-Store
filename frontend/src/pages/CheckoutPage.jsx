@@ -4,6 +4,21 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import api from '../services/api';
 
+// Helper script loader for Razorpay Checkout SDK
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 const CheckoutPage = () => {
   const { user } = useAuth();
   const { cart, loading: cartLoading, fetchCart } = useCart();
@@ -67,41 +82,126 @@ const CheckoutPage = () => {
       return;
     }
 
-    // Prepare authoritative order payload (containing only shippingAddress and paymentMethod)
-    const orderPayload = {
-      shippingAddress: {
-        address: address.trim(),
-        city: city.trim(),
-        state: state.trim(),
-        postalCode: postalCode.trim(),
-        country: country.trim(),
-      },
-      paymentMethod,
+    const shippingAddress = {
+      address: address.trim(),
+      city: city.trim(),
+      state: state.trim(),
+      postalCode: postalCode.trim(),
+      country: country.trim(),
     };
 
-    try {
-      setIsSubmitting(true);
-      const res = await api.post('/orders', orderPayload);
-      setIsSubmitting(false);
+    // If Payment Method is COD
+    if (paymentMethod === 'COD') {
+      try {
+        setIsSubmitting(true);
+        const res = await api.post('/orders', {
+          shippingAddress,
+          paymentMethod: 'COD',
+        });
+        setIsSubmitting(false);
 
-      if (res.data && res.data.success && res.data.order) {
-        // Synchronize CartContext so cart becomes empty
-        await fetchCart();
-        // Redirect to newly created order page
-        navigate(`/orders/${res.data.order._id}`);
-      } else {
-        setSubmitError(res.data?.message || 'Failed to place order. Please try again.');
+        if (res.data && res.data.success && res.data.order) {
+          await fetchCart();
+          navigate(`/orders/${res.data.order._id}`);
+        } else {
+          setSubmitError(res.data?.message || 'Failed to place order. Please try again.');
+        }
+      } catch (err) {
+        setIsSubmitting(false);
+        console.error('Error placing COD order:', err);
+        const msg = err.response?.data?.message;
+
+        if (msg && (msg.toLowerCase().includes('stock') || msg.toLowerCase().includes('empty'))) {
+          setSubmitError('Some items are no longer available in the requested quantity. Please review your cart.');
+          await fetchCart();
+        } else {
+          setSubmitError(msg || 'Unable to place your order. Please check your address and try again.');
+        }
       }
-    } catch (err) {
-      setIsSubmitting(false);
-      console.error('Error placing order:', err);
-      const msg = err.response?.data?.message;
+      return;
+    }
 
-      if (msg && (msg.toLowerCase().includes('stock') || msg.toLowerCase().includes('empty'))) {
-        setSubmitError('Some items are no longer available in the requested quantity. Please review your cart.');
-        await fetchCart();
-      } else {
-        setSubmitError(msg || 'Unable to place your order. Please check your address and try again.');
+    // If Payment Method is RAZORPAY
+    if (paymentMethod === 'RAZORPAY') {
+      try {
+        setIsSubmitting(true);
+
+        // 1. Ensure Razorpay SDK script is loaded
+        const sdkLoaded = await loadRazorpayScript();
+        if (!sdkLoaded) {
+          setIsSubmitting(false);
+          setSubmitError('Failed to load Razorpay SDK. Please check your internet connection.');
+          return;
+        }
+
+        // 2. Call backend endpoint to create a Razorpay order
+        const createRes = await api.post('/payment/create-order');
+        if (!createRes.data || !createRes.data.success || !createRes.data.id) {
+          setIsSubmitting(false);
+          setSubmitError(createRes.data?.message || 'Failed to initiate online payment.');
+          return;
+        }
+
+        const { id: rzpOrderId, amount, currency } = createRes.data;
+        const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder';
+
+        // 3. Configure Razorpay Checkout options
+        const options = {
+          key: razorpayKeyId,
+          amount,
+          currency: currency || 'INR',
+          name: 'E-Commerce Store',
+          description: 'Secure Online Payment',
+          order_id: rzpOrderId,
+          prefill: {
+            name: user?.name || '',
+            email: user?.email || '',
+          },
+          handler: async (response) => {
+            try {
+              setIsSubmitting(true);
+              const verifyRes = await api.post('/payment/verify', {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                shippingAddress,
+              });
+
+              if (verifyRes.data && verifyRes.data.success && verifyRes.data.order) {
+                await fetchCart();
+                navigate(`/orders/${verifyRes.data.order._id}`);
+              } else {
+                setSubmitError(verifyRes.data?.message || 'Payment verification failed.');
+                setIsSubmitting(false);
+              }
+            } catch (err) {
+              console.error('Razorpay verification error:', err);
+              setIsSubmitting(false);
+              setSubmitError(
+                err.response?.data?.message || 'Payment verification failed. Please check your order status or try again.'
+              );
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              setIsSubmitting(false);
+            },
+          },
+          theme: {
+            color: '#4f46e5',
+          },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', (response) => {
+          setIsSubmitting(false);
+          setSubmitError(response?.error?.description || 'Payment failed. Please try again.');
+        });
+        rzp.open();
+      } catch (err) {
+        setIsSubmitting(false);
+        console.error('Error starting Razorpay checkout:', err);
+        setSubmitError(err.response?.data?.message || 'Failed to initialize payment. Please try again.');
       }
     }
   };
@@ -294,19 +394,19 @@ const CheckoutPage = () => {
                   <input
                     type="radio"
                     name="paymentMethod"
-                    value="CARD"
-                    checked={paymentMethod === 'CARD'}
+                    value="RAZORPAY"
+                    checked={paymentMethod === 'RAZORPAY'}
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     disabled={isSubmitting}
                   />
-                  💳 Card Payment (Simulated)
+                  💳 Razorpay / Online Payment
                 </label>
               </div>
 
-              {/* Informational note for CARD method */}
-              {paymentMethod === 'CARD' && (
+              {/* Informational note for RAZORPAY method */}
+              {paymentMethod === 'RAZORPAY' && (
                 <div className="alert-box alert-info" style={{ marginTop: '0.75rem', fontSize: '0.85rem' }}>
-                  ℹ️ Card payment integration will be added later. Payment status will remain Pending. No card details are collected.
+                  🔒 Secure online payment via Razorpay (Test Mode). Supports Cards, UPI, NetBanking & Wallets.
                 </div>
               )}
 

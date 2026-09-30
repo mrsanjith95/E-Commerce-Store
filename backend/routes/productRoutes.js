@@ -8,6 +8,10 @@ const {
   deleteProduct,
 } = require('../controllers/productController');
 const { protect, adminMiddleware } = require('../middleware/authMiddleware');
+const reviewRoutes = require('./reviewRoutes');
+
+// Nested router for reviews on products: /api/products/:productId/reviews
+router.use('/:productId/reviews', reviewRoutes);
 
 // @route   GET /api/products - Get all products (Public)
 // @route   POST /api/products - Create a product (Admin only)
@@ -26,3 +30,4 @@ router
   .delete(protect, adminMiddleware, deleteProduct);
 
 module.exports = router;
+

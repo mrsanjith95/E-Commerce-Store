@@ -88,7 +88,7 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['COD', 'CARD'],
+      enum: ['COD', 'CARD', 'RAZORPAY'],
       default: 'COD',
     },
     paymentStatus: {
@@ -106,6 +106,15 @@ const orderSchema = new mongoose.Schema(
     },
     deliveredAt: {
       type: Date,
+    },
+    razorpayOrderId: {
+      type: String,
+    },
+    razorpayPaymentId: {
+      type: String,
+    },
+    razorpaySignature: {
+      type: String,
     },
   },
   {

@@ -6,8 +6,9 @@
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Razorpay](https://img.shields.io/badge/Razorpay-02042B?style=for-the-badge&logo=razorpay&logoColor=00C8FF)
 
-A full-stack e-commerce web application built using the MERN stack. The application provides product browsing, authentication, shopping cart functionality, checkout, order tracking, and role-based administration for managing products and orders.
+A full-stack, production-grade MERN e-commerce web application featuring secure JWT authentication, product catalog browsing, search & filtering, wishlist, persistent cart, Razorpay Test Mode online payments, Cash on Delivery (COD) support, order status tracking, user reviews & ratings, and a comprehensive admin management dashboard.
 
 ---
 
@@ -15,119 +16,174 @@ A full-stack e-commerce web application built using the MERN stack. The applicat
 
 - [Overview](#overview)
 - [Features](#features)
-  - [User Features](#user-features)
-  - [Admin Features](#admin-features)
-- [Technology Stack](#technology-stack)
-- [Project Architecture](#project-architecture)
+  - [Authentication & Authorization](#authentication--authorization)
+  - [Product Catalog](#product-catalog)
+  - [Shopping Cart](#shopping-cart)
+  - [Checkout & Payments](#checkout--payments)
+  - [Orders](#orders)
+  - [Reviews & Ratings](#reviews--ratings)
+  - [Wishlist](#wishlist)
+  - [Admin Dashboard](#admin-dashboard)
+  - [Responsive UI](#responsive-ui)
+- [Tech Stack](#tech-stack)
+- [System Architecture](#system-architecture)
 - [Project Structure](#project-structure)
-- [Installation](#installation)
+- [API Endpoints](#api-endpoints)
+- [Authentication Flow](#authentication-flow)
+- [Shopping & Order Flow](#shopping--order-flow)
+- [Razorpay Test Mode](#razorpay-test-mode)
 - [Environment Variables](#environment-variables)
-- [Running the Application](#running-the-application)
-- [API Overview](#api-overview)
-- [Authentication](#authentication)
-- [Order Workflow](#order-workflow)
+- [Installation & Setup](#installation--setup)
 - [Security](#security)
-- [Testing](#testing)
+- [Testing / Verification](#testing--verification)
 - [Screenshots](#screenshots)
 - [Future Enhancements](#future-enhancements)
 - [Author](#author)
+- [License](#license)
 
 ---
 
 ## Overview
 
-The **E-Commerce Store** is a production-grade full-stack web application designed to deliver an end-to-end online shopping experience. It connects a modern, responsive React frontend with a secure Node.js/Express backend powered by MongoDB for persistent data storage.
+The **E-Commerce Store** is an end-to-end full-stack web application designed to deliver an intuitive online shopping experience. Built using modern web development best practices, it connects a fast React frontend powered by Vite with a Node.js/Express REST API and a MongoDB Atlas database.
 
-The application provides:
-- Product catalog browsing with detailed product view
-- Search, category filtering, and price/alphabetical sorting
-- User registration and login with JWT authentication
-- Role-based access control separating customer and admin workflows
-- Persistent shopping cart management (add, update quantities, remove, clear)
-- Checkout workflow with shipping address input and payment-method selection
-- Order creation, historical order tracking, and status viewing
-- Comprehensive admin dashboard for full product CRUD operations and customer order status updates
+Key capability highlights:
+- **Customer Shopping Lifecycle:** Full catalog discovery, instant search, multi-criteria filtering, wishlist management, cart persistence, address checkout, and online/offline payment processing.
+- **Razorpay Integration:** Full Razorpay Test Mode integration featuring server-side amount computation and HMAC-SHA256 signature verification.
+- **Reviews & Ratings:** Verified user review submission with 1–5 star ratings and admin moderation.
+- **Admin Operations:** Complete dashboard for catalog management (Product CRUD), order fulfillment, status tracking, and review moderation.
 
 ---
 
 ## Features
 
-### User Features
+### Authentication & Authorization
+- **User Registration & Login:** Email and password authentication with encrypted password storage.
+- **JSON Web Tokens (JWT):** Stateless token-based session handling stored securely in client state.
+- **Role-Based Access Control:** Strict role segregation between standard `Customer` users and `Admin` users.
+- **Protected Routes:** Both frontend router guards and backend middleware enforce authorization.
 
-- **User Registration & Login:** Create a new account or log in securely with JWT token authentication.
-- **Browse Products:** View all available products in a clean, responsive layout.
-- **Search Products:** Instant search by product title or description.
-- **Filter by Category:** Filter catalog items by specific product categories.
-- **Sort Products:** Sort items by price (ascending/descending) or alphabetically.
-- **View Product Details:** Detailed view displaying image, price, stock status, and description.
-- **Add Products to Cart:** Add items to cart directly from catalog or product detail page.
-- **Update Cart Quantities:** Adjust item quantities within the cart.
-- **Remove Products from Cart:** Remove individual items or clear the cart.
-- **Checkout:** Dedicated checkout page to review order items and total cost.
-- **Shipping Address Management:** Input delivery details during checkout.
-- **Payment Method Selection:** Choose between Cash on Delivery (COD) and Card options. *(Note: The current application provides payment-method selection UI and does not process real card payments).*
-- **View Order History:** Access past orders placed by the user.
-- **View Order Details:** Inspect items, pricing breakdown, shipping address, and current status for any order.
-- **Track Order Status:** Real-time visibility into order status updates set by administrators.
+### Product Catalog
+- **Catalog Browsing:** Responsive product grid displaying titles, images, categories, prices, stock levels, and average star ratings.
+- **Instant Search:** Keyword search across product names and descriptions.
+- **Category Filtering:** Filter products by specific categories.
+- **Flexible Sorting:** Sort catalog items by price (low-to-high, high-to-low) or alphabetically.
+- **Product Detail View:** Detailed product view displaying full descriptions, inventory availability, review summaries, and wishlist/cart controls.
 
-### Admin Features
+### Shopping Cart
+- **Persistent Cart:** Cart items sync automatically with MongoDB for authenticated users.
+- **Cart Management:** Add products, adjust quantities, remove items, or clear the entire cart.
+- **Real-Time Price Calculations:** Dynamic computation of subtotal, estimated tax (18% GST), shipping, and overall total.
+- **Stock Validation:** Prevents adding more items than available in product inventory.
 
-- **Admin Dashboard:** Centralized panel accessible only by authorized administrative users.
-- **Product Listing:** View all catalog items with stock levels and price details.
-- **Add Products:** Create new product listings with image URLs, categories, prices, and stock counts.
-- **Edit Products:** Update product details, stock, pricing, and description.
-- **Delete Products:** Remove obsolete or out-of-stock items from the catalog.
-- **View All Customer Orders:** Monitor all customer orders across the platform.
-- **Update Order Status:** Change order status (e.g., Pending, Processing, Shipped, Delivered, Cancelled).
-- **View Customer Information:** Access buyer name, email, and shipping details associated with each order.
-- **View Order Details:** Deep-dive into item lists, individual pricing, payment method, and timestamps.
+### Checkout & Payments
+- **Shipping Address Input:** Structured input for street address, city, state, postal code, and country.
+- **Payment Method Selection:**
+  - 💵 **Cash on Delivery (COD):** Direct order creation with pending payment status.
+  - 💳 **Razorpay / Online Payment (Test Mode):** Secure checkout modal processing cards, UPI, netbanking, and test wallets.
+- **Server-Side Price Integrity:** Order amounts are strictly computed on the backend from database prices.
+
+### Orders
+- **Order Creation:** Generates authoritative order records with snapshot item details, shipping address, and payment references.
+- **Customer Order History:** Page displaying all past user orders with dates, items count, payment methods, and current statuses.
+- **Order Detail Page:** Detailed invoice view displaying itemized costs, shipping information, payment method, payment timestamps, and status timeline.
+- **Fulfillment Status Tracking:** Real-time visibility into order status (`Pending`, `Processing`, `Shipped`, `Delivered`, `Cancelled`).
+
+### Reviews & Ratings
+- **Customer Reviews:** Authenticated users can submit text reviews and 1–5 star ratings for products.
+- **Duplicate Prevention:** Users are restricted to one review per product.
+- **Rating Synchronization:** Product average ratings and review counts update dynamically.
+- **Review Moderation:** Admin panel allows reviewing, approving, or rejecting submitted customer reviews.
+
+### Wishlist
+- **Toggle Wishlist:** Easily add or remove items from a user's personal wishlist with visual heart feedback.
+- **Wishlist Counter:** Dynamic badge in the navigation bar displaying total saved items.
+- **Direct Cart Transfer:** One-click option to move saved wishlist items directly into the shopping cart.
+- **User Isolation:** Wishlists are privately tied to individual user accounts.
+
+### Admin Dashboard
+- **Dashboard Overview:** High-level metrics showing total catalog items, overall orders count, total revenue, and review counts.
+- **Product CRUD Management:** Add new products, update existing pricing/stock/details, or remove products.
+- **Order Fulfillment Center:** View all customer orders, filter by status, inspect customer details, and update shipment delivery statuses.
+- **Review Moderation Panel:** Review customer feedback and toggle approval status.
+
+### Responsive UI
+- **Modern Design Aesthetics:** Built using modern CSS variable tokens, card layouts, clean typography, subtle animations, and accessible contrast ratios.
+- **Cross-Device Optimization:** Optimized for mobile screens, tablets, and desktop displays.
 
 ---
 
-## Technology Stack
+## Tech Stack
 
-| Layer | Technology | Description |
-| :--- | :--- | :--- |
-| **Frontend** | React | Component-based UI library |
-| | Vite | Fast frontend build tool and dev server |
-| | JavaScript (ES6+) | Core application logic |
-| | React Router | Client-side page routing |
-| | Axios | HTTP client for backend API communication |
-| **Backend** | Node.js | JavaScript runtime environment |
-| | Express.js | Web application framework for REST APIs |
-| | REST APIs | Endpoint architecture for CRUD operations |
-| | JWT (jsonwebtoken) | Stateless user authentication |
-| | bcryptjs | Password hashing algorithm |
-| **Database** | MongoDB | NoSQL document database |
-| | Mongoose | Object Data Modeling (ODM) library for MongoDB |
-| **Development** | Git & GitHub | Version control and repository hosting |
-| | VS Code | Integrated Development Environment |
+### Frontend
+- **React (v19)** — Component-driven user interface architecture
+- **Vite (v8)** — Next-generation frontend toolchain and dev server
+- **JavaScript (ES6+)** — Client-side application logic
+- **React Router (v7)** — Client-side route management and navigation guards
+- **Axios** — HTTP client with request/response interceptors for JWT injection
+- **Vanilla CSS** — Custom responsive design system with CSS custom properties
+
+### Backend
+- **Node.js** — Asynchronous JavaScript runtime environment
+- **Express.js (v5)** — Web framework for REST API route handling and middleware
+- **MongoDB & Mongoose (v9)** — Document database and Object Data Modeling (ODM)
+- **JSON Web Token (`jsonwebtoken`)** — Stateless authentication mechanism
+- **`bcryptjs`** — Salted password hashing algorithm
+- **`cors` & `dotenv`** — Cross-Origin Resource Sharing and environment configuration
+
+### Payments
+- **Razorpay Node.js SDK (v2)** — Official SDK for backend order creation
+- **Razorpay Checkout SDK (`checkout.js`)** — Frontend modal interface for Test Mode payments
 
 ---
 
-## Project Architecture
+## System Architecture
+
+### General Application Architecture
 
 ```text
-Browser
-   ↓
-React Frontend (Vite, React Router, Axios)
-   ↓
-Axios / REST API HTTP Requests
-   ↓
-Express Backend (Middleware, Controllers, Routes)
-   ↓
-Mongoose ODM
-   ↓
-MongoDB Database
+User Browser
+    ↓
+React Frontend (Vite + React Router + Context API)
+    ↓
+Axios HTTP Client (Attaches Authorization: Bearer <JWT>)
+    ↓
+Express.js REST API Server
+    ↓
+Middleware (cors, json, protect, adminMiddleware)
+    ↓
+Controllers (Auth, Product, Cart, Order, Review, Wishlist, Payment)
+    ↓
+Mongoose Models (User, Product, Cart, Order, Review, Wishlist)
+    ↓
+MongoDB Atlas Database
 ```
 
-### Architecture Description
+### Razorpay Payment Flow Architecture
 
-1. **Client Layer (Browser & React):** User interacts with the single-page application built with React components and managed with React Router.
-2. **HTTP Layer (Axios):** Sends asynchronous HTTP requests carrying JSON payloads and JWT authorization tokens in headers (`Authorization: Bearer <token>`).
-3. **Server Layer (Express.js):** Routes requests through authentication and authorization middleware to appropriate controller functions.
-4. **Data Modeling Layer (Mongoose):** Enforces schemas, data validation, and business logic before querying or writing to the database.
-5. **Database Layer (MongoDB):** Stores documents for users, products, carts, and orders.
+```text
+User Clicks "Place Order" (Razorpay Selected)
+    ↓
+React CheckoutPage calls POST /api/payment/create-order
+    ↓
+Express backend fetches Cart from MongoDB & computes trusted amount (paise)
+    ↓
+Backend calls Razorpay SDK -> creates Razorpay Order ID
+    ↓
+Backend returns { id, amount, currency } to React
+    ↓
+React opens Razorpay Checkout Modal (https://checkout.razorpay.com/v1/checkout.js)
+    ↓
+User completes Test Mode payment -> Razorpay returns payment credentials
+    ↓
+React calls POST /api/payment/verify with signature & shipping details
+    ↓
+Backend performs HMAC SHA256 signature verification (razorpay_order_id + "|" + razorpay_payment_id)
+    ↓
+Signature Valid?
+  ├── YES: Create Order (Paid), Decrement Stock, Clear Cart, Return Application Order
+  └── NO: Return HTTP 400 Error (Cart & Stock remain untouched)
+```
 
 ---
 
@@ -138,251 +194,341 @@ E-Commerce-Store/
 │
 ├── backend/
 │   ├── config/
-│   │   └── db.js
+│   │   └── db.js                 # MongoDB connection initialization
 │   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── cartController.js
-│   │   ├── orderController.js
-│   │   └── productController.js
+│   │   ├── authController.js     # User registration, login, profile logic
+│   │   ├── cartController.js     # Cart fetch, item addition, quantity updates
+│   │   ├── orderController.js    # COD order creation, user/admin order fetching
+│   │   ├── paymentController.js  # Razorpay order creation & signature verification
+│   │   ├── productController.js  # Product listing, search, filtering, CRUD
+│   │   ├── reviewController.js   # Product review creation, fetch, & admin moderation
+│   │   └── wishlistController.js # Wishlist toggle, fetch, & move-to-cart logic
 │   ├── middleware/
-│   │   ├── authMiddleware.js
-│   │   └── errorMiddleware.js
+│   │   ├── authMiddleware.js     # JWT token validation & admin authorization
+│   │   └── errorMiddleware.js    # 404 handler & centralized error handler
 │   ├── models/
-│   │   ├── Cart.js
-│   │   ├── Order.js
-│   │   ├── Product.js
-│   │   └── User.js
+│   │   ├── Cart.js               # User cart schema
+│   │   ├── Order.js              # Order schema with Razorpay fields
+│   │   ├── Product.js            # Product schema with stock & rating metrics
+│   │   ├── Review.js             # Customer review & rating schema
+│   │   ├── User.js               # User authentication schema
+│   │   └── Wishlist.js           # User wishlist schema
 │   ├── routes/
-│   │   ├── authRoutes.js
-│   │   ├── cartRoutes.js
-│   │   ├── orderRoutes.js
-│   │   └── productRoutes.js
-│   ├── .env.example
-│   ├── package.json
-│   └── server.js
+│   │   ├── authRoutes.js         # Authentication API endpoints
+│   │   ├── cartRoutes.js         # Cart API endpoints
+│   │   ├── orderRoutes.js        # Order API endpoints
+│   │   ├── paymentRoutes.js      # Razorpay payment API endpoints
+│   │   ├── productRoutes.js      # Product catalog API endpoints
+│   │   ├── reviewRoutes.js       # Reviews API endpoints
+│   │   └── wishlistRoutes.js     # Wishlist API endpoints
+│   ├── .env.example              # Backend environment variable placeholders
+│   ├── package.json              # Node.js dependencies and scripts
+│   └── server.js                 # Express server bootstrap file
 │
 ├── frontend/
+│   ├── public/                   # Static public assets
 │   ├── src/
 │   │   ├── components/
+│   │   │   ├── AdminRoute.jsx    # Guard component for admin-only routes
+│   │   │   ├── Footer.jsx        # Site footer component
+│   │   │   ├── Navbar.jsx        # Navigation bar with badges & user menu
+│   │   │   ├── ProductCard.jsx   # Product card component
+│   │   │   └── ProtectedRoute.jsx# Guard component for authenticated users
 │   │   ├── context/
+│   │   │   ├── AuthContext.jsx   # Authentication state management
+│   │   │   ├── CartContext.jsx   # Cart state & API synchronization
+│   │   │   └── WishlistContext.jsx# Wishlist state & sync
 │   │   ├── pages/
-│   │   └── services/
-│   ├── .env.example
-│   ├── package.json
-│   └── vite.config.js
+│   │   │   ├── AdminDashboardPage.jsx # Admin metrics overview
+│   │   │   ├── AdminOrdersPage.jsx    # Admin order fulfillment management
+│   │   │   ├── AdminProductsPage.jsx  # Admin product CRUD management
+│   │   │   ├── AdminReviewsPage.jsx   # Admin review moderation panel
+│   │   │   ├── CartPage.jsx           # Customer shopping cart page
+│   │   │   ├── CheckoutPage.jsx       # Shipping & Razorpay/COD checkout page
+│   │   │   ├── HomePage.jsx           # Hero page with featured catalog
+│   │   │   ├── LoginPage.jsx          # User login page
+│   │   │   ├── OrderDetailPage.jsx    # Itemized order invoice & status details
+│   │   │   ├── OrdersPage.jsx         # User order history list
+│   │   │   ├── ProductDetailPage.jsx  # Product detail & reviews page
+│   │   │   ├── ProductsPage.jsx       # Catalog page with search, filter, & sort
+│   │   │   ├── RegisterPage.jsx       # User registration page
+│   │   │   └── WishlistPage.jsx       # Saved wishlist items page
+│   │   ├── services/
+│   │   │   └── api.js                 # Axios instance configured with JWT interceptor
+│   │   ├── App.jsx                    # Root App component with routing setup
+│   │   ├── index.css                  # Core CSS design tokens and component styles
+│   │   └── main.jsx                   # React application entry point
+│   ├── .env.example                  # Frontend environment variable placeholders
+│   ├── package.json                  # React & Vite dependencies
+│   └── vite.config.js                # Vite development server configuration
 │
-├── .gitignore
-└── README.md
+├── .gitignore                    # Excludes node_modules, dist, and .env files
+└── README.md                     # Application documentation
 ```
 
 ---
 
-## Installation
+## API Endpoints
 
-### Prerequisites
+### 1. Authentication Routes (`/api/auth`)
 
-Ensure you have the following installed on your machine:
-- **Node.js** (v16+ recommended)
-- **npm** (v8+ recommended)
-- **MongoDB** (Local instance or MongoDB Atlas account)
-- **Git**
+| Method | Endpoint | Access | Purpose |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Public | Register a new user account |
+| `POST` | `/api/auth/login` | Public | Authenticate user & return JWT token |
+| `GET` | `/api/auth/me` | Private | Retrieve logged-in user profile |
+| `GET` | `/api/auth/protected` | Private | Verify JWT authorization status |
 
-### Step-by-Step Setup
+### 2. Product Routes (`/api/products`)
 
-1. **Clone the repository:**
-   ```powershell
-   git clone https://github.com/mrsanjith95/E-Commerce-Store.git
-   cd E-Commerce-Store
+| Method | Endpoint | Access | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/products` | Public | Fetch product catalog (supports search, category filter, sort) |
+| `GET` | `/api/products/:id` | Public | Fetch detailed product information by ID |
+| `POST` | `/api/products` | Admin | Create a new product listing |
+| `PUT` | `/api/products/:id` | Admin | Update existing product details, price, or stock |
+| `DELETE` | `/api/products/:id` | Admin | Delete a product from the catalog |
+
+### 3. Cart Routes (`/api/cart`)
+
+| Method | Endpoint | Access | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/cart` | Private | Retrieve current user's shopping cart |
+| `POST` | `/api/cart` | Private | Add product item to cart |
+| `PUT` | `/api/cart/:productId` | Private | Update quantity of item in cart |
+| `DELETE` | `/api/cart/:productId` | Private | Remove specific product from cart |
+| `DELETE` | `/api/cart` | Private | Clear all items from cart |
+
+### 4. Order Routes (`/api/orders`)
+
+| Method | Endpoint | Access | Purpose |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/orders` | Private | Create Cash on Delivery (COD) order |
+| `GET` | `/api/orders/my-orders` | Private | Retrieve logged-in user's order history |
+| `GET` | `/api/orders/:id` | Private | Retrieve detailed order invoice by ID |
+| `GET` | `/api/orders` | Admin | Retrieve all customer orders across platform |
+| `PUT` | `/api/orders/:id/status` | Admin | Update order status (`Pending`, `Processing`, `Shipped`, `Delivered`, `Cancelled`) |
+
+### 5. Payment Routes (`/api/payment`)
+
+| Method | Endpoint | Access | Purpose |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/payment/create-order` | Private | Generate Razorpay order based on server-calculated cart total |
+| `POST` | `/api/payment/verify` | Private | Verify Razorpay HMAC signature & create paid application order |
+
+### 6. Review Routes (`/api/reviews`)
+
+| Method | Endpoint | Access | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/reviews/product/:productId` | Public | Fetch approved customer reviews for a product |
+| `POST` | `/api/reviews/product/:productId` | Private | Submit product review and star rating |
+| `DELETE` | `/api/reviews/:id` | Private/Admin | Delete a review (by author or admin) |
+| `GET` | `/api/reviews/admin/all` | Admin | Fetch all submitted reviews for admin moderation |
+| `PUT` | `/api/reviews/admin/:id/status` | Admin | Approve or reject a customer review |
+
+### 7. Wishlist Routes (`/api/wishlist`)
+
+| Method | Endpoint | Access | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/wishlist` | Private | Fetch user's saved wishlist items |
+| `POST` | `/api/wishlist/toggle` | Private | Add or remove product from wishlist |
+| `DELETE` | `/api/wishlist/:productId` | Private | Remove product from wishlist |
+| `POST` | `/api/wishlist/move-to-cart` | Private | Move item from wishlist directly into cart |
+
+---
+
+## Authentication Flow
+
+1. **Registration & Password Hashing:** User registers with name, email, and password. `bcryptjs` automatically salts and hashes the password before saving to MongoDB.
+2. **Login & JWT Generation:** Upon valid login credentials verification, the server generates a signed JWT payload containing user ID and admin role flag (`isAdmin`).
+3. **Client Session Storage:** The React client stores the token in local storage and manages authentication state via `AuthContext`.
+4. **Automated Interceptor:** Axios HTTP client attaches the JWT to request headers:
+   ```http
+   Authorization: Bearer <token>
    ```
+5. **Backend Protection Middleware:** `protect` middleware decodes token validity. `adminMiddleware` ensures non-admin users cannot access administrative endpoints.
 
-2. **Setup Backend:**
-   ```powershell
-   cd backend
-   npm install
-   ```
+---
 
-3. **Setup Frontend:**
-   ```powershell
-   cd ../frontend
-   npm install
-   ```
+## Shopping & Order Flow
+
+```text
+1. Browse Catalog
+   ├── Search by keyword
+   ├── Filter by category
+   └── Sort by price or name
+        ↓
+2. Add Product to Cart / Wishlist
+   ├── Syncs with backend MongoDB document
+   └── Updates persistent header badges
+        ↓
+3. Navigate to Checkout Page
+   ├── Enter shipping address
+   └── Select Payment Method (COD or Razorpay)
+        ↓
+4. Order Processing Flow:
+   ├── Cash on Delivery (COD):
+   │   └── POST /api/orders -> Order created (Pending) -> Clear Cart
+   │
+   └── Razorpay Online Payment:
+       ├── POST /api/payment/create-order -> Calculates total & returns Razorpay Order ID
+       ├── Razorpay Modal opens for user -> Payment completed in Test Mode
+       ├── POST /api/payment/verify -> HMAC SHA256 Signature Verification
+       └── Signature Valid? -> Order created (Paid) -> Stock decremented -> Clear Cart
+        ↓
+5. Order Invoice & Tracking Page (/orders/:id)
+   └── Real-time status updates managed via Admin Dashboard
+```
+
+---
+
+## Razorpay Test Mode
+
+The application integrates Razorpay **TEST MODE** for online payment simulation.
+
+### Payment Execution Steps:
+1. **Initiation:** The frontend requests Razorpay order creation via `POST /api/payment/create-order`.
+2. **Server Computation:** The backend fetches items directly from MongoDB, verifies inventory stock, computes tax/shipping/subtotal, and converts the total to paise (`amount * 100`).
+3. **Razorpay Order ID:** The backend initializes Razorpay SDK and returns the generated Razorpay order ID to the client.
+4. **Modal Launch:** Razorpay Checkout modal launches in the browser using the public `VITE_RAZORPAY_KEY_ID`.
+5. **HMAC Signature Verification:** Upon payment completion, payment credentials (`razorpay_order_id`, `razorpay_payment_id`, `razorpay_signature`) are sent to `POST /api/payment/verify`.
+6. **Confirmation:** The server verifies the signature using `HMAC-SHA256` generated from `${razorpay_order_id}|${razorpay_payment_id}` using `RAZORPAY_KEY_SECRET`.
+7. **Order Finalization:** Only after verified signature match is the order created in MongoDB with `paymentStatus: 'Paid'`, stock decremented, and the cart cleared.
+
+> **Security Guarantee:** The `RAZORPAY_KEY_SECRET` remains strictly server-side. Production keys should be supplied only via secure environment variables.
 
 ---
 
 ## Environment Variables
 
-### Backend Configuration
+### Backend (`backend/.env`)
 
-Create a `.env` file inside the `backend` directory based on `backend/.env.example`:
+Configure environment variables in `backend/.env` (refer to `backend/.env.example`):
 
 ```env
 PORT=5000
 MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/ecommerce_store?retryWrites=true&w=majority
 JWT_SECRET=your_jwt_secret_key_here
+RAZORPAY_KEY_ID=your_razorpay_key_id_here
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret_here
 ```
 
-### Frontend Configuration
+### Frontend (`frontend/.env`)
 
-Create a `.env` file inside the `frontend` directory based on `frontend/.env.example`:
+Configure environment variables in `frontend/.env` (refer to `frontend/.env.example`):
 
 ```env
 VITE_API_URL=http://localhost:5000/api
+VITE_RAZORPAY_KEY_ID=your_razorpay_key_id_here
 ```
-
-> **Note:** Do not commit `.env` files containing real secrets or database credentials to public repositories.
 
 ---
 
-## Running the Application
+## Installation & Setup
 
-### 1. Start Backend Server
+### Prerequisites
+- **Node.js** (v18+ recommended)
+- **npm** (v9+ recommended)
+- **MongoDB** (Local MongoDB server or MongoDB Atlas cluster)
 
-From the root directory:
+### Step-by-Step Installation
 
-```powershell
-cd backend
-npm run dev
-```
-
-- Server runs on: `http://localhost:5000`
-- API Health Check: `http://localhost:5000/api/health`
-
-### 2. Start Frontend Application
-
-In a new terminal, from the root directory:
-
-```powershell
-cd frontend
-npm run dev
-```
-
-- Local Web Application: `http://localhost:5173`
-
----
-
-## API Overview
-
-### Authentication Routes (`/api/auth`)
-
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/auth/register` | Public | Register a new user |
-| `POST` | `/api/auth/login` | Public | Authenticate user & return JWT token |
-| `GET` | `/api/auth/me` | Private | Get profile details of logged-in user |
-| `GET` | `/api/auth/protected` | Private | Verify JWT token authorization |
-
-### Product Routes (`/api/products`)
-
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/products` | Public | Fetch all products (supports filtering & sorting) |
-| `GET` | `/api/products/:id` | Public | Fetch single product by ID |
-| `POST` | `/api/products` | Admin | Create a new product |
-| `PUT` | `/api/products/:id` | Admin | Update existing product by ID |
-| `DELETE` | `/api/products/:id` | Admin | Remove product by ID |
-
-### Cart Routes (`/api/cart`)
-
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/cart` | Private | Retrieve current user's shopping cart |
-| `POST` | `/api/cart` | Private | Add product item to cart |
-| `PUT` | `/api/cart/:productId` | Private | Update item quantity in cart |
-| `DELETE` | `/api/cart/:productId` | Private | Remove specific product from cart |
-| `DELETE` | `/api/cart` | Private | Clear all items from cart |
-
-### Order Routes (`/api/orders`)
-
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/orders` | Private | Create order from checkout cart |
-| `GET` | `/api/orders/my-orders` | Private | Fetch logged-in user's order history |
-| `GET` | `/api/orders/:id` | Private | Fetch specific order details by ID |
-| `GET` | `/api/orders` | Admin | Fetch all orders across all customers |
-| `PUT` | `/api/orders/:id/status` | Admin | Update order processing status |
-
----
-
-## Authentication
-
-The application enforces security using **JSON Web Tokens (JWT)**:
-
-1. **User Login:** Upon successful credentials verification, the server generates a signed JWT containing user identity and role payload.
-2. **Token Storage & Transmission:** The client stores the token and attaches it to authorization headers on subsequent HTTP requests:
-   ```http
-   Authorization: Bearer <your_jwt_token>
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/mrsanjith95/E-Commerce-Store.git
+   cd E-Commerce-Store
    ```
-3. **Protected Routes:** Middleware validates token integrity and signature before allowing access to private resources.
-4. **Role-Based Authorization:** Administrative routes (`/api/products` POST/PUT/DELETE and `/api/orders` GET/status update) check for `isAdmin` privileges.
-5. **Password Hashing:** Passwords are hashed server-side using `bcryptjs` before storage in MongoDB.
 
----
+2. **Setup Backend:**
+   ```bash
+   cd backend
+   npm install
+   ```
 
-## Order Workflow
+3. **Setup Frontend:**
+   ```bash
+   cd ../frontend
+   npm install
+   ```
 
-```text
-Browse Products
-      ↓
-Add to Cart
-      ↓
-Checkout Page (Shipping Details & Payment Selection)
-      ↓
-Create Order (Saved as 'Pending')
-      ↓
-Admin Updates Status:
-  ├── Pending
-  ├── Processing
-  ├── Shipped
-  └── Delivered
-```
+4. **Configure Environment Variables:**
+   - Create `backend/.env` based on `backend/.env.example`.
+   - Create `frontend/.env` based on `frontend/.env.example`.
 
-Order statuses are managed directly through the Admin Dashboard, enabling real-time status visibility for customers.
+5. **Start Development Servers:**
+
+   - **Backend Server** (Terminal 1):
+     ```bash
+     cd backend
+     npm run dev
+     ```
+     *Server runs at `http://localhost:5000` (Health check: `http://localhost:5000/api/health`).*
+
+   - **Frontend Application** (Terminal 2):
+     ```bash
+     cd frontend
+     npm run dev
+     ```
+     *Application runs at `http://localhost:5173`.*
 
 ---
 
 ## Security
 
-The project incorporates established backend and frontend security practices:
+The project incorporates established application security standards:
 
-- **Password Encryption:** Hashing via `bcryptjs` with salt rounds.
-- **Stateless Authentication:** Secure JWT validation on protected endpoints.
-- **Route Authorization:** Dual-tier protection (`protect` for authenticated users, `adminMiddleware` for admin access).
-- **Cart & Order Data Isolation:** Users can only view and modify their own carts and orders.
-- **Price Integrity:** Server-side order total computation prevents client-side price manipulation.
-- **Stock Validation:** Backend checks ensure orders do not exceed current inventory.
-- **Environment Isolation:** Sensitive credentials stored exclusively in `.env` and kept out of version control via `.gitignore`.
+- **Password Hashing:** Passwords encrypted using `bcryptjs` with auto-gen salted rounds.
+- **Stateless Authorization:** Secure JWT token verification on all protected routes.
+- **Dual-Tier Protection:** Endpoint validation using `protect` and `adminMiddleware` guards.
+- **Resource Isolation:** Users can view and modify only their own cart, wishlist, and order documents.
+- **Authoritative Server Computations:** All item prices, taxes, shipping, and totals computed server-side to prevent client-side price tampering.
+- **Inventory Stock Validation:** Server checks ensure items cannot be ordered beyond current stock levels.
+- **HMAC Signature Verification:** Razorpay payments verified server-side via HMAC-SHA256 signature matching.
+- **Duplicate Payment Guard:** Prevents duplicate order creation if payment details have already been processed.
+- **Environment Confidentiality:** All secret credentials excluded from version control via `.gitignore`.
 
 ---
 
-## Testing
+## Testing / Verification
 
-The application went through rigorous functional validation across all application flows:
+The application underwent full functional validation across all application modules:
 
-- **Authentication:** Verified user registration, login authentication, token storage, and logout.
-- **Product Management:** Verified product creation, editing, deletion, search querying, and category filtering.
-- **Cart Management:** Tested adding items, quantity updates, item removal, and full cart clearance.
-- **Checkout & Order Creation:** Tested order placement, address validation, payment selection, and stock deductions.
-- **Order Tracking:** Validated user order list rendering and status tracking.
-- **Admin Authorization:** Verified strict restriction of administrative endpoints and admin dashboard UI to authorized admin accounts.
-- **Frontend UI & Error Handling:** Verified smooth navigation, loading states, and error handling across viewports.
+- **Authentication Module:** Verified user registration, JWT login authentication, profile fetching, token expiration handling, and admin authorization.
+- **Catalog & Discovery:** Verified product catalog rendering, title/description search, category filtering, price/alphabetical sorting, and product detail viewing.
+- **Wishlist Module:** Verified adding/removing items, persistent wishlist storage, navbar counter badge, and wishlist-to-cart transfer.
+- **Shopping Cart Module:** Verified cart persistence, stock availability checks, quantity updates, item deletion, and cart clearing.
+- **Checkout & Payments:** Verified address form validation, COD order creation, Razorpay order generation, Razorpay Checkout modal launch, HMAC signature verification, stock decrement, and cart clearing.
+- **Order Tracking:** Verified customer order history rendering, itemized order invoice views, and admin order fulfillment status updates.
+- **Review System:** Verified review submission, 1–5 star ratings, duplicate submission prevention, product rating metric updates, and admin review moderation.
+- **Admin Management:** Verified administrative access restrictions, product CRUD operations, customer order status management, and review moderation.
+- **Build & Quality:** Verified 0 errors on production build (`npm run build`) and linting (`npx oxlint`).
 
 ---
 
 ## Screenshots
 
-Screenshots of the application can be added here.
+Screenshots showcasing key interface pages:
+
+- **Home Page & Featured Products**
+- **Catalog Page with Filters & Search**
+- **Product Details & Customer Reviews**
+- **Shopping Cart & Price Breakdown**
+- **Checkout & Razorpay Test Payment Modal**
+- **Order Invoice & Tracking Details**
+- **User Wishlist Page**
+- **Admin Management Dashboard & Order Fulfillment**
 
 ---
 
 ## Future Enhancements
 
-- **Online Payment Gateway Integration:** Add live payment processing via Stripe or Razorpay.
-- **Product Reviews & Ratings:** Allow verified buyers to leave reviews and star ratings.
-- **Wishlist Management:** Save favorite products to a user wishlist for later purchasing.
-- **Coupon & Discount System:** Implement promo codes and promotional pricing during checkout.
-- **Email Notifications:** Automated transactional emails for order placement and status changes.
-- **Production Cloud Deployment:** Host backend on Render/AWS and frontend on Vercel/Netlify.
-- **Analytics Dashboard:** Graphical sales reports and revenue charts for administrators.
+- **Product Pagination & Infinite Scroll:** Server-side pagination for large product catalogs.
+- **Advanced Multi-Facet Filtering:** Range sliders for price filtering and brand multi-select.
+- **Transactional Email Notifications:** Automated emails for order confirmation and status changes via Nodemailer/SendGrid.
+- **Promo Codes & Discount System:** Coupon code input during checkout for percentage/flat discounts.
+- **Production Payment Configuration:** Webhook handlers for production Razorpay events.
+- **Image Cloud Storage:** Integration with Cloudinary or AWS S3 for product image uploads.
+- **Automated Testing Suite:** End-to-end testing with Cypress/Playwright and unit testing with Jest/Vitest.
 
 ---
 
@@ -392,3 +538,9 @@ Screenshots of the application can be added here.
 
 - **GitHub:** [mrsanjith95](https://github.com/mrsanjith95)
 - **LinkedIn:** [Sanjith K S](https://www.linkedin.com/in/sanjith-k-s-77b958325/)
+
+---
+
+## License
+
+This project is open for educational and portfolio presentation purposes. All rights reserved by the author.
